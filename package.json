@@ -1,5 +1,5 @@
 {
-  "name": "md-links",
+  "name": "mf-mdlinks",
   "version": "0.1.0",
   "type": "module",
   "dependencies": {
@@ -10,5 +10,25 @@
   },
   "scripts": {
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --coverage"
-  }
+  },
+  "bin": {
+    "mf-mdlinks": "index.js"
+  },
+  "description": "Markdown Links @ Laboratoria",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Maferamosp/SCL018-md-links.git"
+  },
+  "keywords": ["--validate"],
+  "author": "maferamosp",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Maferamosp/SCL018-md-links/issues"
+  },
+  "homepage": "https://github.com/Maferamosp/SCL018-md-links#readme"
 }
