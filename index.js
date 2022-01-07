@@ -3,122 +3,97 @@ import fetch from 'node-fetch';
 import path from 'path';
 import  Yargs  from 'yargs';
 
-// module.exports = () => {
-//   // ...
-// };
-// const url = "https://www.google.com";
-// fetch(url)
-//   .then((response) => console.log(response.status))
-//   .catch((error) => console.log(error));
-
-// const path = require('path');
-// const fileModule = require('./file.js')
 const userPath = process.argv[2];
 const option = Yargs(process.argv.slice(2)).argv;
 
-
-// const isMdFile = (routes) =>{
-//   const ext = path.extname(routes); //para encontrar la extension
-//   if (ext === '.md'){ //verificar si es md
-//     fs.readFileSync(routes, 'utf-8', (err, data)=>{ // lee el contenido del archivo
-//       if (err) throw err;
-//       const links = findLinks(data);
-//       console.log(1, links);
-      
-//       // console.log(validateLinks(links));
-//       // links.forEach(element => validateLink(element));
-//       // links.forEach(element => console.log("este es un elemento de mi arreglo links" + JSON.stringify(element)
-      
-//       // console.log(links)
-//       return links;
-//     })
-//   } else {
-//     console.log('No es un archivo .md')
-//   }
-// };
-
-//funcion para saber si es Archivo o Directorio
-const fileOrDir = (userPath) =>{
-  fs.lstatSync(userPath, (err, stats) => {
-    if (err){
-     console.log(err);
-    }else {
-      if(stats.isDirectory()){
-        console.log('Si es un directorio');
-        funReaddir();//si es un directorio lo lee
-      } else if (stats.isFile()){
-        console.log('Es un archivo')//si es archivo lo lee
-        const url = isMdFile(userPath);
-        return url;
-      }
+// funcion si es un directorio
+const isDirectory = (dirRoutes)=>{
+    try {
+      const stats = fs.statSync(dirRoutes)
+      return stats.isDirectory();
+    } catch (err) {
+      console.error(err)
     }
-  });
-};
-// funcion para leer un directorio
-const funReaddir = () =>{
-fs.readdirSync(userPath, (err, files) => {
-  if(err){
-    console.log(err);
-  }else{
-    files.forEach(file =>{
-      // const file = path.resolve(`${userPath}${path.sep}${file}`);
-      // console.log(file);
-      isMdFile(file)
-    })
-  }
-})
+  };
+ 
+// funcion si es un archivo
+export const isFile = (fileRoute) =>{
+    const ext = path.extname(fileRoute); //para encontrar la extension
+    if (ext === '.md'){ //verificar si es md
+     const data = fs.readFileSync(fileRoute, { encoding: 'utf8', flag: 'r' })
+       return findLinks(data);
+ } else {
+     console.log("No es un archivo MarkDown");
+ }
 }
 
-//----Funcion para encontrar los links-----//
-const findLinks = (data) =>{
-  let getLinks = /(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])/g;
-  let getLinksFin = data.matchAll(getLinks)
-  const allLinks =  [];
-  for (const match of getLinksFin){
-    allLinks.push({
-      href: match[2], //el link entra en el índice 2
-      text: match[1],//el texto del link entra en el índice 1
-      file: userPath, // la ruta que nos da el usuario entra en el índice 0
-    });
-    // console.log(allLinks);
-    // console.log(userPath + ' ' + match[2] + ' ' + `${match[1].slice(0, 50)}`);
+//funcion para leer un directorio -------ARREGLAR!!
+export const funReaddir = (files) => {
+  const folder = fs.readdirSync(files);
+  console.log(folder);
+  folder.forEach(file=>{
 
-  }
-  return allLinks;
-}
-const validateLinks = (arrLinks) => {
-  const status = arrLinks.map((element) =>
-  fetch(element.href)
-  .then((response) =>{
-    return {
-      href: element.href,
-      text: element.text,
-      file: element.file,
-      status: response.status,
-      statusText: "ok",
+    const absPath = path.join(files, file);
+    if(isDirectory(absPath)){
+      funReaddir(absPath)
+    }else if (isFile(absPath)){
+      isFile(absPath) // revisar 
     }
   })
-  )
-  return Promise.all(status);
+}
+
+    //----Funcion para encontrar los links-----//
+export const findLinks = (data) =>{
+   let getLinks = /(?<!\!)\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+   let getLinksFin = data.matchAll(getLinks)
+   const allLinks =  [];
+    for (const match of getLinksFin){
+      allLinks.push({
+        href: match[2], //el link entra en el índice 2
+        text: match[1],//el texto del link entra en el índice 1
+        file: userPath, // la ruta que nos da el usuario entra en el índice 0
+      });
+    }
+    return allLinks;
   }
 
-  const mdLinks = (routes) =>{
-    return new Promise((resolve, reject) =>{
-      const total = isMdFile(routes);
-      if(option.validate){
-        resolve(validateLinks(arrLinks));
-      }else {
-        resolve(total);
+  export const validateLinks = (arrLinks) => {
+    const status = arrLinks.map((element) =>
+    fetch(element.href) //hago la peticion
+    .then((response) =>{ 
+      return {
+        href: element.href,
+        text: element.text,
+        file: element.file,
+        status: response.status,
+        statusText: response.statusText,
       }
-      reject();
-    });
-  };
+    })
+    .catch((err) =>{
+      console.log(err);
+        return {
+            href:element.href,
+            text: element.text,
+            file: element.file,
+            status: 404,
+            statusText: "Fail",
+        }
+    }) 
+    )
+    return Promise.all(status);
+    };
 
-  mdLinks(userPath).then((results)=> console.log(results));
-
-  export { mdLinks, validateLinks, findLinks, funReaddir, fileOrDir, isMdFile }
-// const mdLinks = (userPath) => {
-//   let final = fileOrDir(userPath);
-//   console.log(final);
-// };
-// mdLinks(userPath);
+    export const mdLinks = (fileRoute) =>{
+        return new Promise((resolve, reject) =>{
+          const total = isFile(fileRoute);
+          if(option.validate){
+            resolve(validateLinks(total));
+          }else {
+            resolve(total);
+          }
+          reject();
+        });
+      };
+    
+      mdLinks(userPath)
+      .then(results => console.log(results))
