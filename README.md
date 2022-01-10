@@ -13,4 +13,12 @@ desde tu terminal introduce el el comando, acompañado de la ruta del directorio
 
 Para el desarrollo de este proyecto incié realizando un diagrama de flujo para determinar el punto de inicio y la ruta que debia seguir mi Libreria.
 
-[diagrama]!()
+![diagrama](https://github.com/Maferamosp/SCL018-md-links/blob/main/MD%20LINKS.png)
+
+pack instalados:
+1. File-System
+2. Node-Fetch
+3. Yargs.
+
+Duración: 4 sprint.
+
